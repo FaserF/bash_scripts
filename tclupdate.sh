@@ -48,8 +48,16 @@ fourpdadl=$(curl -k -s 'https://4pda.ru/forum/index.php?showtopic=973246&st=4000
   | xmlstarlet select --template --value-of '//a[last()]/@href[.=contains(.,"-update.cedock.com")]' -n)
 fourpda=$(echo $fourpdadl |  grep -o -e "R851T02-LF1V..." | sort -ru | head -n 1 | sed 's/.*R851T02-LF1V//')
 if ! [[ $fourpda =~ $re ]] ; then
-   echo "Cant fetch version for 4pda page, setting version to 0"
-   fourpda=0
+  fourpdadl=$(curl -k -s 'https://4pda.ru/forum/index.php?showtopic=973246&st=4000#entry97613600-1' \
+  | xmlstarlet format --html 2>/dev/null \
+  | xmlstarlet select --template --value-of '//a[last()]/@href[.=contains(.,"celesw.tcl.com")]' -n)
+  fourpdadl=$(echo $fourpdadl | awk -F'http://' '{print $NF}')
+  fourpdadl="http://$fourpdadl"
+  fourpda=$(echo $fourpdadl |  grep -o -e "Update-41%20RT51%20V..." | sort -ru | head -n 1 | sed 's/.*Update-41%20RT51%20V//')
+  if ! [[ $fourpda =~ $re ]] ; then
+    echo "Cant fetch version for 4pda page, setting version to 0"
+    fourpda=0
+  fi
 fi
 
 versions=($celesw $celesw_two $brasilian $eu $usa $australia $fourpda)
@@ -84,15 +92,16 @@ max_number=$(($old + 150))
 counter=$newest
 
 #Loop that tries to get a newer version
-echo "Trying to see if an update exists for the next 150 Versions"
+echo "Trying to see if an update exists for the next 150 Versions on eu Server"
 until [ $counter -eq $max_number ]
 do
-  link=http://eu-update.cedock.com/apps/resource2/V8R851T02/V8-R851T02-LF1V$counter/FOTA-OTA/V8-R851T02-LF1V$counter.018337.zip
+  link=http://eu-update.cedock.com/apps/resource2/V8R851T02/V8-R851T02-LF1V$counter/
   #echo "Checking version $counter at Download Link $link"
-  if curl --output /dev/null --silent --head --fail "$link"; then
+  result_curl=$(curl -s -o /dev/null -w "%{http_code}" $link)
+  if [ "$result_curl" == "403" ]; then
     max_number=$counter
     newest=$counter
-    link_new=$link
+    link_new="Build number before .zip is missing in download link -> http://as-update.cedock.com/apps/resource2/V8R851T02/V8-R851T02-LF1V$counter/FOTA-OTA/V8-R851T02-LF1V$counter.zip"
     position=7
     echo "Newer Version found: $newest"
   else
@@ -120,7 +129,7 @@ if [ "$old" != "$newest" ]; then
     elif [ "$position" = "7" ]; then
         dllink=$link_new
     fi
-    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL R851T Android TV Update available in Version $newest  ----->  Download $dllink"
+    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL **R851T** Android TV Update available in Version **$newest**  ----->  Download $dllink"
     echo "New Update found: $newest - Download $dllink"
     sed -i "1s/.*/$newest/" $temppath
 fi
@@ -134,7 +143,7 @@ max_number=$(($old_r51M + 150))
 counter=$newest_r51M
 
 #Loop that tries to get a newer version
-echo "Trying to see if an update exists for the next 150 Versions"
+echo "Trying to see if an update exists for the next 150 Versions on eu Server"
 until [ $counter -eq $max_number ]
 do
   link_r51M=http://eu-update.cedock.com/apps/resource2/V8R51MT02/V8-R51MT02-LF1V$counter/FOTA-OTA/V8-R51MT02-LF1V$counter.zip
@@ -150,7 +159,7 @@ do
 done
 
 if [ "$old_r51M" != "$newest_r51M" ]; then
-    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL R51M Android TV Update available in Version $newest_r51M - Download $dllink_r51m"
+    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL **R851T** Android TV Update available in Version **$newest_r51M**  ----->  Download $dllink_r51m"
     echo "New Update found and pushed to telegram: $newest_r51M - Download $dllink_r51m"
     sed -i "2s/.*/$newest_r51M/" $temppath
 fi
