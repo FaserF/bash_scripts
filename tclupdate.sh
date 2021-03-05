@@ -1,7 +1,7 @@
 #!/bin/bash
 #Script for R851T Platform Updates - for r51M see below
-telegram_channel=-hidden
-telegram_bot_api=hidden
+telegram_channel=$1
+telegram_bot_api=$2
 temppath=/share/scripts/tclsw.txt
 if [ ! -f $temppath ]; then
     echo "600" > $temppath
@@ -94,7 +94,7 @@ do
     newest=$counter
     link_new=$link
     position=7
-    echo "Newer Version found: $newest_r51M"
+    echo "Newer Version found: $newest"
   else
     ((counter++))
   fi
@@ -120,14 +120,13 @@ if [ "$old" != "$newest" ]; then
     elif [ "$position" = "7" ]; then
         dllink=$link_new
     fi
-    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL R851T Android TV Update available in Version $newest - Download $dllink"
+    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL R851T Android TV Update available in Version $newest  ----->  Download $dllink"
     echo "New Update found: $newest - Download $dllink"
     sed -i "1s/.*/$newest/" $temppath
 fi
 
 #Script for r51M Platform (for example P815/P816) Updates - for R851T see above
 echo "-----Beginning script for the r51M Platform------"
-telegram_channel=-hidden
 old_r51M=0
 old_r51M=$(cat $temppath | head -2 | tail -1)
 newest_r51M=$old_r51M
