@@ -91,6 +91,7 @@ done
 
 max_number=$(($old + 150))
 counter=$newest
+((counter++))
 
 #Loop that tries to get a newer version
 echo "Trying to see if an update exists for the next 150 Versions on eu Server"
@@ -146,18 +147,20 @@ old_r51M=$(cat $temppath | head -2 | tail -1)
 newest_r51M=$old_r51M
 max_number=$(($old_r51M + 150))
 counter=$newest_r51M
+((counter++))
 
 #Loop that tries to get a newer version
 echo "Trying to see if an update exists for the next 150 Versions on eu Server"
 until [ $counter -eq $max_number ]
 do
-  link_r51M=http://eu-update.cedock.com/apps/resource2/V8R51MT02/V8-R51MT02-LF1V$counter/FOTA-OTA/V8-R51MT02-LF1V$counter.zip
-  #echo "Checking version $counter at Download Link $link_r51M"
-  if curl --output /dev/null --silent --head --fail "$link_r51M"; then
+  link_r51M=http://eu-update.cedock.com/apps/resource2/V8R51MT02/V8-R51MT02-LF1V$counter
+  #echo "Checking version $counter at Download Link $link"
+  result_curl=$(curl -s -o /dev/null -w "%{http_code}" $link_r51M)
+  if [ "$result_curl" == "403" ]; then
     max_number=$counter
     newest_r51M=$counter
     dllink_r51m=$link_r51M
-    echo "Newer Version found: $newest_r51M"
+    echo "Newer Version found: http://eu-update.cedock.com/apps/resource2/V8R51MT02/V8-R51MT02-LF1V$counter/FOTA-OTA/V8-R51MT02-LF1V$counter.zip"
   else
     ((counter++))
   fi
