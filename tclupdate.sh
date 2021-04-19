@@ -2,6 +2,7 @@
 #Script for R851T Platform Updates - for r51M see below
 telegram_channel=$1
 telegram_bot_api=$2
+telegram_channel_discussion=$3
 temppath=/share/scripts/tclsw.txt
 if [ ! -f $temppath ]; then
     echo "600" > $temppath
@@ -101,7 +102,7 @@ do
   if [ "$result_curl" == "403" ]; then
     max_number=$counter
     newest=$counter
-    link_new="Build number before .zip is missing in download link -> http://as-update.cedock.com/apps/resource2/V8R851T02/V8-R851T02-LF1V$counter/FOTA-OTA/V8-R851T02-LF1V$counter.zip"
+    link_new="Build number before .zip is missing in download link, so it wasnt posted in the channel yet -> http://as-update.cedock.com/apps/resource2/V8R851T02/V8-R851T02-LF1V$counter/FOTA-OTA/V8-R851T02-LF1V$counter.zip"
     position=7
     echo "Newer Version found: $newest"
   else
@@ -129,8 +130,12 @@ if [ "$old" != "$newest" ]; then
     elif [ "$position" = "7" ]; then
         dllink=$link_new
     fi
-    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL **R851T** Android TV Update available in Version **$newest**  ----->  Download $dllink"
-    echo "New Update found: $newest - Download $dllink"
+    if [ "$position" = "7" ]; then
+      curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel_discussion&disable_web_page_preview=1&text=New TCL **R851T** Android TV Update available in Version **$newest**  ----->  Download $dllink"
+    else
+      curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL **R851T** Android TV Update available in Version **$newest**  ----->  Download $dllink"
+      echo "New Update found: $newest - Download $dllink"
+    fi
     sed -i "1s/.*/$newest/" $temppath
 fi
 
