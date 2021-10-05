@@ -167,7 +167,39 @@ do
 done
 
 if [ "$old_r51M" != "$newest_r51M" ]; then
-    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL **R851T** Android TV Update available in Version **$newest_r51M**  ----->  Download $dllink_r51m"
+    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL **R51MT02** Android TV Update available in Version **$newest_r51M**  ----->  Download $dllink_r51m"
     echo "New Update found and pushed to telegram: $newest_r51M - Download $dllink_r51m"
     sed -i "2s/.*/$newest_r51M/" $temppath
+fi
+
+#Script for T615T02 Platform
+echo "-----Beginning script for the T615T02 Platform------"
+old_T615T02=0
+old_T615T02=$(cat $temppath | head -2 | tail -1)
+newest_T615T02=$old_T615T02
+max_number=$(($old_T615T02 + 150))
+counter=$newest_T615T02
+((counter++))
+
+#Loop that tries to get a newer version
+echo "Trying to see if an update exists for the next 150 Versions on eu Server"
+until [ $counter -eq $max_number ]
+do
+  link_T615T02=http://na-update.cedock.com/apps/resource2/V8T615T02/V8-T615T02-LF1V$counter
+  #echo "Checking version $counter at Download Link $link"
+  result_curl=$(curl -s -o /dev/null -w "%{http_code}" $link_T615T02)
+  if [ "$result_curl" == "403" ]; then
+    max_number=$counter
+    newest_T615T02=$counter
+    dllink_T615T02=$link_T615T02
+    echo "Newer Version found: http://na-update.cedock.com/apps/resource2/V8T615T02/V8-T615T02-LF1V$counter/FOTA-OTA/V8-T615T02-LF1V$counter.zip"
+  else
+    ((counter++))
+  fi
+done
+
+if [ "$old_T615T02" != "$newest_T615T02" ]; then
+    curl -s "https://api.telegram.org/bot$telegram_bot_api/sendMessage?chat_id=$telegram_channel&disable_web_page_preview=1&text=New TCL **T615T02** Android TV Update available in Version **$newest_T615T02**  ----->  Download $dllink_T615T02"
+    echo "New Update found and pushed to telegram: $newest_T615T02 - Download $dllink_T615T02"
+    sed -i "2s/.*/$newest_T615T02/" $temppath
 fi
