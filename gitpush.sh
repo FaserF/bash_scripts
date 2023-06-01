@@ -2,6 +2,7 @@
 
 cd /config/
 
+git pull origin master
 git add .
 git status
 git commit -m "automatic upload by server"
